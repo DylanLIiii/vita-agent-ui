@@ -10,7 +10,7 @@ const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws) => {
     console.log('Client connected');
-    ws.send(JSON.stringify({ type: 'token', content: 'Connected to Stream Server...\n' }));
+    ws.send(JSON.stringify({ type: 'system', content: 'Connected to Stream Server...\n' }));
 
     ws.on('message', (message) => {
         // Parse message to ensure it's valid JSON (optional safety)

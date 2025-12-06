@@ -30,6 +30,12 @@ export class StreamParser {
                 type: 'user_request',
                 content: chunk.content
             });
+        } else if (chunk.type === 'system') {
+            this.finalizeCurrentBlocks();
+            this.blocks.push({
+                type: 'system',
+                content: chunk.content
+            });
         }
         return [...this.blocks];
     }

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, BrainCircuit } from 'lucide-react';
 
 import { GenericTool } from './components/tools/GenericTool';
+import { ThinkingBlock } from './components/ThinkingBlock';
 
 const TOOLS = {
     'vision_analyze': VisionTool,
@@ -48,52 +49,57 @@ const StreamRenderer = () => {
                                     </motion.div>
                                 </div>
                             );
+                        } else if (block.type === 'system') {
+                            return (
+                                <div key={i} className="flex justify-center my-2">
+                                    <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-full uppercase tracking-wider">
+                                        {block.content}
+                                    </span>
+                                </div>
+                            );
                         } else if (block.type === 'text') {
                             if (block.isThinking) {
                                 return (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="relative overflow-hidden group"
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        <div className="backdrop-blur-md bg-white/30 border border-white/40 rounded-xl p-4 shadow-sm">
-                                            <div className="flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                                                <BrainCircuit size={14} className="animate-pulse text-indigo-400" />
-                                                Thinking Process
-                                            </div>
-                                            <div className="text-sm font-mono text-gray-600 leading-relaxed whitespace-pre-wrap break-words">
-                                                {block.content}
-                                            </div>
-                                        </div>
-                                    </motion.div>
+                                    <div key={i} className="flex gap-3 my-2">
+                                        {/* Spacer to align with avatar */}
+                                        <div className="flex-shrink-0 w-8" />
+                                        <ThinkingBlock content={block.content} />
+                                    </div>
                                 );
                             }
                             return (
-                                <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="leading-relaxed text-[17px] text-gray-800 font-normal tracking-wide whitespace-pre-wrap break-words"
-                                >
-                                    {block.content}
-                                </motion.div>
+                                <div key={i} className="flex gap-3 my-2">
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm">
+                                        <Sparkles size={14} />
+                                    </div>
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm max-w-[85%] leading-relaxed text-[15px] text-gray-800"
+                                    >
+                                        {block.content}
+                                    </motion.div>
+                                </div>
                             );
                         } else if (block.type === 'tool_call') {
                             const ToolComp = getTool(block.name);
                             if (!ToolComp) {
                                 // Fallback to GenericTool for unknown tools
                                 return (
-                                    <div key={i}>
-                                        <GenericTool args={block.args} result={block.result} name={block.name} />
+                                    <div key={i} className="flex gap-3 my-2">
+                                        <div className="flex-shrink-0 w-8" />
+                                        <div className="w-full max-w-[85%]">
+                                            <GenericTool args={block.args} result={block.result} name={block.name} />
+                                        </div>
                                     </div>
                                 );
                             }
                             return (
-                                <div key={i}>
-                                    <ToolComp args={block.args} result={block.result} />
+                                <div key={i} className="flex gap-3 my-2">
+                                    <div className="flex-shrink-0 w-8" />
+                                    <div className="w-full max-w-[85%]">
+                                        <ToolComp args={block.args} result={block.result} />
+                                    </div>
                                 </div>
                             );
                         }

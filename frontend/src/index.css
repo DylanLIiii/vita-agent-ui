@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-apple-gray-100 text-apple-gray-900 font-sans antialiased;
+  background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #eef2f6 100%);
+  min-h-screen: 100vh;
+}

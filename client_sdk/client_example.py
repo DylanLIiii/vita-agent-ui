@@ -1,9 +1,15 @@
 import asyncio
 import websockets
 import json
+import sys
+import uuid
 
 async def stream_data():
     uri = "ws://localhost:61111"
+    
+    # Generate or read Client ID
+    client_id = sys.argv[1] if len(sys.argv) > 1 else f"agent_{str(uuid.uuid4())[:8]}"
+    client_name = f"Agent {client_id}"
     
     steps = [
         {"type": "user_request", "content": "Can you analyze this image for me and then take an action?"},
@@ -148,6 +154,15 @@ async def stream_data():
 
     async with websockets.connect(uri) as websocket:
         print(f"Connected to {uri}")
+
+        # Register message
+        register_msg = {
+            "type": "register",
+            "id": client_id,
+            "name": client_name
+        }
+        await websocket.send(json.dumps(register_msg))
+        print(f"Sent: {register_msg}")
         
         for step in steps:
             await websocket.send(json.dumps(step))

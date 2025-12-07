@@ -6,6 +6,10 @@ export class StreamParser {
     private currentThinkingBlock: Extract<MessageBlock, { type: 'text' }> | null = null;
     private currentTextBlock: Extract<MessageBlock, { type: 'text' }> | null = null;
 
+    public get isThinking(): boolean {
+        return this.currentThinkingBlock !== null;
+    }
+
     processChunk(chunk: StreamChunk): MessageBlock[] {
         if (chunk.type === 'token') {
             this.buffer += chunk.content;

@@ -8,20 +8,61 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocket.Server({ server });
 
+// Map to store connected "agent/source" clients
+// Key: WebSocket object, Value: { id: string, name: string, type: 'source' | 'viewer' }
+const clients = new Map();
+
 wss.on('connection', (ws) => {
     console.log('Client connected');
+
+    // Default metadata
+    clients.set(ws, {
+        id: 'anon_' + Date.now(),
+        name: 'Anonymous',
+        type: 'viewer' // Default to viewer until they register as source
+    });
+
     ws.send(JSON.stringify({ type: 'system', content: 'Connected to Stream Server...\n' }));
+    broadcastClientList();
 
     ws.on('message', (message) => {
-        // Parse message to ensure it's valid JSON (optional safety)
         try {
             const data = JSON.parse(message);
-            // Broadcast to ALL other clients (except sender)
-            wss.clients.forEach((client) => {
-                if (client !== ws && client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(data));
-                }
-            });
+
+            // Handle Registration
+            if (data.type === 'register') {
+                const clientInfo = clients.get(ws);
+                clientInfo.id = data.id || clientInfo.id;
+                clientInfo.name = data.name || `Agent ${data.id}`;
+                clientInfo.type = 'source'; // registered clients are sources
+                clients.set(ws, clientInfo);
+
+                console.log(`Client registered: ${clientInfo.name} (${clientInfo.id})`);
+                broadcastClientList();
+                return;
+            }
+
+            // For source clients, wrap and broadcast their messages
+            const sender = clients.get(ws);
+            if (sender.type === 'source') {
+                const wrappedMessage = {
+                    type: 'broadcast',
+                    clientId: sender.id,
+                    clientName: sender.name,
+                    message: data
+                };
+
+                // Broadcast to ALL connected clients (viewers AND other sources if needed)
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify(wrappedMessage));
+                    }
+                });
+            } else {
+                // Should viewers be able to send things? Maybe control commands later.
+                // For now, ignore or log.
+            }
+
         } catch (e) {
             console.error("Invalid JSON received", e);
         }
@@ -29,14 +70,43 @@ wss.on('connection', (ws) => {
 
     ws.on('close', () => {
         console.log('Client disconnected');
+        clients.delete(ws);
+        broadcastClientList();
     });
 });
 
-// Mock Producer logic to simulate LangChain stream
-function broadcast(data) {
+function broadcastClientList() {
+    const activeSources = [];
+    clients.forEach((info) => {
+        if (info.type === 'source') {
+            activeSources.push({ id: info.id, name: info.name });
+        }
+    });
+
+    const message = JSON.stringify({
+        type: 'client_list',
+        clients: activeSources
+    });
+
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(data));
+            client.send(message);
+        }
+    });
+}
+
+// Mock Producer logic to simulate LangChain stream
+// Mock Producer logic to simulate LangChain stream
+function broadcastMock(data, mockId = 'mock_1', mockName = 'Mock Agent') {
+    const wrapped = {
+        type: 'broadcast',
+        clientId: mockId,
+        clientName: mockName,
+        message: data
+    };
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(wrapped));
         }
     });
 }
@@ -184,7 +254,7 @@ const startMockStream = () => {
             clearInterval(interval);
             return;
         }
-        broadcast(steps[i]);
+        broadcastMock(steps[i]);
         i++;
     }, 200); // 200ms delay between chunks
 };

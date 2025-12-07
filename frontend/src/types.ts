@@ -12,8 +12,20 @@ export type MessageBlock =
     | { type: 'user_request'; content: string }
     | { type: 'system'; content: string };
 
+
+export interface ClientInfo {
+    id: string;
+    name: string;
+}
+
+export type ServerMessage =
+    | { type: 'client_list'; clients: ClientInfo[] }
+    | { type: 'broadcast'; clientId: string; clientName: string; message: StreamChunk }
+    | { type: 'system'; content: string }; // connection status messages from server
+
 export interface StreamState {
     blocks: MessageBlock[];
     isThinking: boolean;
     isConnected: boolean;
 }
+

@@ -1,29 +1,60 @@
 import { useState, useEffect, useRef } from 'react';
 import { StreamParser } from '../lib/streamParser';
-import { StreamState, StreamChunk } from '../types';
+import { StreamState, StreamChunk, ServerMessage, ClientInfo } from '../types';
 
 export function useStreamIngestion(url: string) {
-    const [state, setState] = useState<StreamState>({
-        blocks: [],
-        isThinking: false,
-        isConnected: false,
-    });
+    const [stats, setStats] = useState<{ isConnected: boolean }>({ isConnected: false });
+    const [availableClients, setAvailableClients] = useState<ClientInfo[]>([]);
+    const [activeClientId, setActiveClientId] = useState<string | null>(null);
 
-    const parserRef = useRef(new StreamParser());
+    // Map clientId -> StreamParser instance
+    const parsersRef = useRef<Map<string, StreamParser>>(new Map());
+    // Map clientId -> StreamState
+    const [clientStreams, setClientStreams] = useState<Record<string, StreamState>>({});
 
     useEffect(() => {
         const ws = new WebSocket(url);
 
         ws.onopen = () => {
             console.log('Connected to WS');
-            setState(s => ({ ...s, isConnected: true }));
+            setStats({ isConnected: true });
         };
 
         ws.onmessage = (event) => {
             try {
-                const chunk: StreamChunk = JSON.parse(event.data);
-                const updatedBlocks = parserRef.current.processChunk(chunk);
-                setState(s => ({ ...s, blocks: updatedBlocks }));
+                const data: ServerMessage = JSON.parse(event.data);
+
+                if (data.type === 'client_list') {
+                    setAvailableClients(data.clients);
+                    // Auto-select first client if none selected
+                    setActiveClientId(prev => {
+                        if (prev && data.clients.find(c => c.id === prev)) return prev;
+                        return data.clients.length > 0 ? data.clients[0].id : null;
+                    });
+                } else if (data.type === 'broadcast') {
+                    const { clientId, message } = data;
+
+                    // Get or create parser for this client
+                    let parser = parsersRef.current.get(clientId);
+                    if (!parser) {
+                        parser = new StreamParser();
+                        parsersRef.current.set(clientId, parser);
+                    }
+
+                    const updatedBlocks = parser.processChunk(message);
+
+                    setClientStreams(prev => ({
+                        ...prev,
+                        [clientId]: {
+                            blocks: updatedBlocks,
+                            isThinking: parser.isThinking, // You might need to expose this from parser or track it
+                            isConnected: true
+                        }
+                    }));
+                } else if (data.type === 'system') {
+                    // console.log("System:", data.content);
+                }
+
             } catch (e) {
                 console.error("Failed to parse chunk", e);
             }
@@ -31,7 +62,8 @@ export function useStreamIngestion(url: string) {
 
         ws.onclose = () => {
             console.log('Disconnected from WS');
-            setState(s => ({ ...s, isConnected: false }));
+            setStats({ isConnected: false });
+            setAvailableClients([]);
         };
 
         return () => {
@@ -39,5 +71,13 @@ export function useStreamIngestion(url: string) {
         };
     }, [url]);
 
-    return state;
+    const activeStream = activeClientId ? clientStreams[activeClientId] : null;
+
+    return {
+        blocks: activeStream?.blocks || [],
+        isConnected: stats.isConnected,
+        availableClients,
+        activeClientId,
+        setActiveClientId
+    };
 }

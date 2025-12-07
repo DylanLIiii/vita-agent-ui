@@ -7,7 +7,7 @@ export type StreamChunk =
     | { type: 'system'; content: string };
 
 export type MessageBlock =
-    | { type: 'text'; content: string; isThinking?: boolean }
+    | { type: 'text'; content: string; isThinking?: boolean; thinkingTag?: string }
     | { type: 'tool_call'; name: string; args: any; id: string; result?: any; rawArgs?: string }
     | { type: 'user_request'; content: string }
     | { type: 'system'; content: string };

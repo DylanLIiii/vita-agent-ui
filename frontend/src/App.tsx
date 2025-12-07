@@ -167,7 +167,7 @@ const StreamRenderer = () => {
                                             <div key={i} className="flex gap-2 md:gap-3 my-2">
                                                 {/* Spacer to align with avatar */}
                                                 <div className="flex-shrink-0 w-8" />
-                                                <ThinkingBlock content={block.content} />
+                                                <ThinkingBlock content={block.content} thinkingTag={block.thinkingTag} />
                                             </div>
                                         );
                                     }

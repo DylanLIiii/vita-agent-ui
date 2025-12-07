@@ -133,6 +133,11 @@ const startMockStream = () => {
         { type: 'token', content: "San " },
         { type: 'token', content: "Francisco." },
         { type: 'token', content: "</thinking>" },
+        { type: 'token', content: "\nI will verify this.\n" },
+        { type: 'token', content: "<reasoning>" },
+        { type: 'token', content: "Verifying data integrity... " },
+        { type: 'token', content: "Data looks good." },
+        { type: 'token', content: "</reasoning>" },
 
         // VisionAnalyze - VQA mode
         {

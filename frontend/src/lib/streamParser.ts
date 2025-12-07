@@ -82,50 +82,72 @@ export class StreamParser {
     }
 
     private processBuffer() {
-        let loop = true;
-        while (loop) {
-            loop = false;
+        while (true) {
+            if (this.currentThinkingBlock) {
+                // We are inside a thinking block. Look for the corresponding closing tag.
+                const currentTag = this.currentThinkingBlock.thinkingTag || 'thinking';
+                const closingTag = `</${currentTag}>`;
+                const closingIndex = this.buffer.indexOf(closingTag);
 
-            // Check for <thinking> start
-            const thinkingStart = this.buffer.indexOf('<thinking>');
-            if (thinkingStart !== -1) {
-                // Text before <thinking> goes to currentTextBlock
-                if (thinkingStart > 0) {
-                    const text = this.buffer.substring(0, thinkingStart);
-                    this.appendToTextBlock(text, false);
-                }
-
-                this.buffer = this.buffer.substring(thinkingStart + 10);
-                this.currentThinkingBlock = { type: 'text', content: '', isThinking: true };
-                this.blocks.push(this.currentThinkingBlock);
-                // We consumed text, so loop again
-                loop = true;
-                continue;
-            }
-
-            // Check for </thinking> end
-            const thinkingEnd = this.buffer.indexOf('</thinking>');
-            if (thinkingEnd !== -1) {
-                if (this.currentThinkingBlock) {
-                    const text = this.buffer.substring(0, thinkingEnd);
-                    this.currentThinkingBlock.content += text;
+                if (closingIndex !== -1) {
+                    // Found closing tag
+                    const content = this.buffer.substring(0, closingIndex);
+                    this.currentThinkingBlock.content += content;
                     this.currentThinkingBlock = null; // Close thinking block
-                }
-                this.buffer = this.buffer.substring(thinkingEnd + 11);
-                loop = true;
-                continue;
-            }
-        }
 
-        // Remaining buffer logic
-        if (this.currentThinkingBlock) {
-            // We are inside thinking
-            this.currentThinkingBlock.content += this.buffer;
-            this.buffer = '';
-        } else {
-            // We are in normal text
-            this.appendToTextBlock(this.buffer, false);
-            this.buffer = '';
+                    // Advance buffer past the closing tag
+                    this.buffer = this.buffer.substring(closingIndex + closingTag.length);
+                    // Loop continues to process remaining buffer
+                } else {
+                    // No closing tag found in this buffer
+                    this.currentThinkingBlock.content += this.buffer;
+                    this.buffer = '';
+                    break; // Done with this buffer
+                }
+            } else {
+                // We are in normal text. Look for any opening tag.
+                const tags = ['thinking', 'think', 'reasoning'];
+                let firstTagIndex = -1;
+                let foundTag = '';
+
+                for (const tag of tags) {
+                    const openTag = `<${tag}>`;
+                    const idx = this.buffer.indexOf(openTag);
+                    if (idx !== -1) {
+                        if (firstTagIndex === -1 || idx < firstTagIndex) {
+                            firstTagIndex = idx;
+                            foundTag = tag;
+                        }
+                    }
+                }
+
+                if (firstTagIndex !== -1) {
+                    // Found an opening tag
+                    // Content before the tag is normal text
+                    if (firstTagIndex > 0) {
+                        const text = this.buffer.substring(0, firstTagIndex);
+                        this.appendToTextBlock(text, false);
+                    }
+
+                    // Start new thinking block
+                    this.currentThinkingBlock = {
+                        type: 'text',
+                        content: '',
+                        isThinking: true,
+                        thinkingTag: foundTag
+                    };
+                    this.blocks.push(this.currentThinkingBlock);
+
+                    // Advance buffer past the opening tag
+                    this.buffer = this.buffer.substring(firstTagIndex + foundTag.length + 2); // +2 for < and >
+                    // Loop continues
+                } else {
+                    // No opening tag found
+                    this.appendToTextBlock(this.buffer, false);
+                    this.buffer = '';
+                    break; // Done
+                }
+            }
         }
     }
 

@@ -2,8 +2,19 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, BrainCircuit } from 'lucide-react';
 
-export const ThinkingBlock: React.FC<{ content: string }> = ({ content }) => {
+export const ThinkingBlock: React.FC<{ content: string; thinkingTag?: string }> = ({ content, thinkingTag }) => {
     const [isOpen, setIsOpen] = useState(true);
+
+    const getTitle = () => {
+        switch (thinkingTag) {
+            case 'reasoning':
+                return 'Reasoning Process';
+            case 'think':
+            case 'thinking':
+            default:
+                return 'Thinking Process';
+        }
+    };
 
     return (
         <div className="w-full my-2">
@@ -15,7 +26,7 @@ export const ThinkingBlock: React.FC<{ content: string }> = ({ content }) => {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-system-blue opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-system-blue"></span>
                 </div>
-                <span>Thinking Process</span>
+                <span>{getTitle()}</span>
                 <ChevronDown
                     size={14}
                     className={`ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`}

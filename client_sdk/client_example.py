@@ -99,6 +99,44 @@ async def stream_data():
             },
         },
 
+        # ControlNav Tool - Navigation
+        {
+            "type": "tool_call",
+            "name": "control_nav",
+            "id": "call_py_nav_1",
+            "args": {
+                "x": 2.5,
+                "y": 1.0,
+            },
+        },
+        # Simulate loading by sending tokens between request and result
+        {"type": "token", "content": "Navigating "},
+        {"type": "token", "content": "to "},
+        {"type": "token", "content": "target "},
+        {"type": "token", "content": "location...\n"},
+        {
+            "type": "tool_result",
+            "id": "call_py_nav_1",
+            "result": "✅ Navigating to (x=2.5m forward, y=1.0m left)",
+        },
+
+        # ControlNav Tool - Rotation
+        {
+            "type": "tool_call",
+            "name": "control_nav",
+            "id": "call_py_rot_1",
+            "args": {
+                "angle": -45,
+            },
+        },
+        {"type": "token", "content": "Rotating "},
+        {"type": "token", "content": "robot...\n"},
+        {
+            "type": "tool_result",
+            "id": "call_py_rot_1",
+            "result": "✅ Rotated 45° Right",
+        },
+
         # Generic/custom tool example still works and falls back to GenericTool
         {"type": "token", "content": "\nNow trying a generic tool...\n"},
         {

@@ -140,7 +140,38 @@ const startMockStream = () => {
                 message: "Successfully executed action 'Wave'."
             }
         },
-
+        // ControlNav tool example - Navigation
+        {
+            type: 'tool_call',
+            name: 'control_nav',
+            id: 'call_nav_1',
+            args: {
+                x: 1.5,
+                y: -0.5
+            }
+        },
+        // Wait a bit to show progress bar
+        { type: 'token', content: "Navigating" },
+        { type: 'token', content: "..." },
+        {
+            type: 'tool_result',
+            id: 'call_nav_1',
+            result: "✅ Navigating to (x=1.5m forward, y=-0.5m left)"
+        },
+        // ControlNav tool example - Rotation
+        {
+            type: 'tool_call',
+            name: 'control_nav',
+            id: 'call_rot_1',
+            args: {
+                angle: 90
+            }
+        },
+        {
+            type: 'tool_result',
+            id: 'call_rot_1',
+            result: "✅ Rotated 90° Left"
+        },
         { type: 'token', content: "The " },
         { type: 'token', content: "weather " },
         { type: 'token', content: "is " },

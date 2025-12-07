@@ -3,6 +3,7 @@ import { useStreamIngestion } from './hooks/useStreamIngestion';
 import { ToolRegistryProvider, useToolRegistry } from './lib/ToolRegistry';
 import { VisionTool } from './components/tools/VisionTool';
 import { TakeActionTool } from './components/tools/TakeActionTool';
+import { ControlNavTool } from './components/tools/ControlNavTool';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, BrainCircuit } from 'lucide-react';
 
@@ -12,6 +13,7 @@ import { ThinkingBlock } from './components/ThinkingBlock';
 const TOOLS = {
     'vision_analyze': VisionTool,
     'take_action': TakeActionTool,
+    'control_nav': ControlNavTool,
     'generic_tool': GenericTool
 };
 

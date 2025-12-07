@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, BrainCircuit } from 'lucide-react';
 
 export const ThinkingBlock: React.FC<{ content: string }> = ({ content }) => {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
     return (
         <div className="w-full my-2">

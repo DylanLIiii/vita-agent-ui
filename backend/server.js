@@ -1,5 +1,5 @@
-const WebSocket = require('ws');
 require('dotenv').config();
+const WebSocket = require('ws');
 const http = require('http');
 
 const server = http.createServer((req, res) => {

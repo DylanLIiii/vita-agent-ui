@@ -177,7 +177,7 @@ async def stream_data():
                 last_ping = now
             await asyncio.sleep(0.2)
 
-        # 长时间保持连接示例
+        # Example for maintaining a long-lived connection
         while True:
             await asyncio.sleep(20)
             await websocket.ping()

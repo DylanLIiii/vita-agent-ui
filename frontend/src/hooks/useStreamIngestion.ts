@@ -63,7 +63,6 @@ export function useStreamIngestion(url: string) {
         ws.onclose = () => {
             console.log('Disconnected from WS');
             setStats({ isConnected: false });
-            setAvailableClients([]);
         };
 
         return () => {

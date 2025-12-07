@@ -3,9 +3,10 @@ import websockets
 import json
 import sys
 import uuid
+import os
 
 async def stream_data():
-    uri = "ws://localhost:61111"
+    uri = os.getenv("WS_URI", "ws://localhost:61111")
     
     # Generate or read Client ID
     client_id = sys.argv[1] if len(sys.argv) > 1 else f"agent_{str(uuid.uuid4())[:8]}"
@@ -152,7 +153,7 @@ async def stream_data():
         },
     ]
 
-    async with websockets.connect(uri) as websocket:
+    async with websockets.connect(uri, ping_interval=None) as websocket:
         print(f"Connected to {uri}")
 
         # Register message
@@ -164,11 +165,24 @@ async def stream_data():
         await websocket.send(json.dumps(register_msg))
         print(f"Sent: {register_msg}")
         
+        last_ping = asyncio.get_event_loop().time()
+
         for step in steps:
             await websocket.send(json.dumps(step))
             print(f"Sent: {step}")
+            # 定期发送 ping 维持长连
+            now = asyncio.get_event_loop().time()
+            if now - last_ping > 20:
+                await websocket.ping()
+                last_ping = now
             await asyncio.sleep(0.2)
-            
+
+        # 长时间保持连接示例
+        while True:
+            await asyncio.sleep(20)
+            await websocket.ping()
+            print("Sent heartbeat ping")
+
         print("Stream finished")
 
 if __name__ == "__main__":

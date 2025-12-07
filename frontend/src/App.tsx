@@ -18,7 +18,7 @@ const TOOLS = {
 };
 
 const StreamRenderer = () => {
-    const { blocks, isConnected, availableClients, activeClientId, setActiveClientId } = useStreamIngestion('ws://localhost:61111');
+    const { blocks, isConnected, availableClients, activeClientId, setActiveClientId } = useStreamIngestion(import.meta.env.VITE_WS_URL || 'ws://localhost:61111');
     const { getTool } = useToolRegistry();
     const bottomRef = useRef<HTMLDivElement>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);

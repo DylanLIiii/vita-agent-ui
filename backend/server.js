@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+require('dotenv').config();
 const http = require('http');
 
 const server = http.createServer((req, res) => {
@@ -305,7 +306,10 @@ setInterval(() => {
 // The previous second wss.on('connection') block is now integrated into the first one.
 // The setTimeout(startMockStream, 2000); call is removed as it was not part of the requested change.
 
-server.listen(61111, () => {
-    console.log('Server started on port 61111');
+const PORT = process.env.PORT || 61111;
+const HOST = process.env.HOST || '0.0.0.0';
+
+server.listen(PORT, HOST, () => {
+    console.log(`Server started on port ${PORT}`);
 });
 

@@ -23,7 +23,8 @@ wss.on('connection', (ws) => {
     });
 
     ws.send(JSON.stringify({ type: 'system', content: 'Connected to Stream Server...\n' }));
-    broadcastClientList();
+    // Send client list ONLY to the new client (don't spam everyone else)
+    sendClientListTo(ws);
 
     ws.on('message', (message) => {
         try {
@@ -70,10 +71,36 @@ wss.on('connection', (ws) => {
 
     ws.on('close', () => {
         console.log('Client disconnected');
-        clients.delete(ws);
-        broadcastClientList();
+        const clientInfo = clients.get(ws);
+
+        // Only broadcast if a SOURCE disconnected
+        // If a viewer disconnects, nobody cares (except the server logs)
+        if (clientInfo && clientInfo.type === 'source') {
+            clients.delete(ws);
+            broadcastClientList();
+        } else {
+            clients.delete(ws);
+        }
     });
 });
+
+function sendClientListTo(clientSocket) {
+    const activeSources = [];
+    clients.forEach((info) => {
+        if (info.type === 'source') {
+            activeSources.push({ id: info.id, name: info.name });
+        }
+    });
+
+    const message = JSON.stringify({
+        type: 'client_list',
+        clients: activeSources
+    });
+
+    if (clientSocket.readyState === WebSocket.OPEN) {
+        clientSocket.send(message);
+    }
+}
 
 function broadcastClientList() {
     const activeSources = [];

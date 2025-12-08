@@ -32,16 +32,26 @@ export class StreamParser {
                 });
             } else if (chunk.type === 'tool_call_chunk') {
                 this.finalizeCurrentBlocks();
-                let toolBlock = this.blocks.find(b => b.type === 'tool_call' && b.id === chunk.id);
+                let toolBlock;
+
+                if (chunk.id) {
+                    toolBlock = this.blocks.find(b => b.type === 'tool_call' && b.id === chunk.id);
+                } else {
+                    // If ID is missing, try to attach to the most recent tool call
+                    const lastBlock = this.blocks[this.blocks.length - 1];
+                    if (lastBlock && lastBlock.type === 'tool_call') {
+                        toolBlock = lastBlock;
+                    }
+                }
 
                 if (!toolBlock) {
                     // New tool call starting
                     // NOTE: First chunk should contain the name
                     toolBlock = {
-                        type: 'tool_call',
+                        type: 'tool_call' as const,
                         name: chunk.name || 'unknown_tool',
                         args: {},
-                        id: chunk.id,
+                        id: chunk.id || '',
                         rawArgs: ''
                     };
                     this.blocks.push(toolBlock);

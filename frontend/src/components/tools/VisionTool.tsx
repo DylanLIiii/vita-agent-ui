@@ -37,12 +37,22 @@ function normalizeResult(result: any): NormalizedResult {
 
 export const VisionTool: React.FC<VisionToolProps> = ({ args, result, events }) => {
     const rawMode = args?.mode;
-    const mode: 'vqa' | 'grounding' | 'unknown' =
+    const modeFromArgs: 'vqa' | 'grounding' | 'unknown' =
         rawMode === 1 || rawMode === 'vqa'
             ? 'vqa'
             : rawMode === 2 || rawMode === 'grounding'
                 ? 'grounding'
                 : 'unknown';
+
+    // Fallback: Infer mode from events if args are missing/unknown
+    let mode = modeFromArgs;
+    if (mode === 'unknown') {
+        if (events?.some(e => e.event_type === 'vision_vqa_result' || e.event_type === 'vision_vqa_start')) {
+            mode = 'vqa';
+        } else if (events?.some(e => e.event_type === 'vision_3d_result' || e.event_type === 'vision_grounding_start')) {
+            mode = 'grounding';
+        }
+    }
 
     // Derive data from events or args/result
     const capturedImageEvent = events?.find(e => e.event_type === 'vision_image_captured' || e.event_type === 'vision_stereo_captured') as VisionImageCapturedEvent | VisionStereoCapturedEvent | undefined;

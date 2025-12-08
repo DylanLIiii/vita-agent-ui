@@ -15,7 +15,7 @@ server.requestTimeout = 0; // disable per-request timeout
 
 const wss = new WebSocket.Server({ server });
 
-const HEARTBEAT_INTERVAL_MS = Number(process.env.WS_HEARTBEAT_INTERVAL_MS || 30000);
+const HEARTBEAT_INTERVAL_MS = Number(process.env.WS_HEARTBEAT_INTERVAL_MS || 20000);
 
 // Map to store connected "agent/source" clients
 // Key: WebSocket object, Value: { id: string, name: string, type: 'source' | 'viewer' }
@@ -112,6 +112,7 @@ wss.on('connection', (ws) => {
 const heartbeatInterval = setInterval(() => {
     wss.clients.forEach((client) => {
         if (client.isAlive === false) {
+            console.log(`Terminating stale connection: ${clients.get(client)?.id}`);
             return client.terminate();
         }
         client.isAlive = false;

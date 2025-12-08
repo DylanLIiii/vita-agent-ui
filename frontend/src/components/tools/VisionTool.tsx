@@ -35,6 +35,33 @@ function normalizeResult(result: any): NormalizedResult {
     return { status: 'ok', data: result };
 }
 
+
+function formatCoordinate(val: number | undefined, type: 'x' | 'y' | 'z'): string {
+    if (val === undefined || val === null) return '-';
+
+    const absVal = Math.abs(val);
+    const distStr = absVal < 1
+        ? `${(absVal * 100).toFixed(0)}厘米`
+        : `${absVal.toFixed(2)}米`;
+
+    // Raw value formatting to 3 decimal places
+    const raw = `${val.toFixed(3)}米`;
+
+    if (type === 'x') {
+        const dir = val >= 0 ? "向前" : "向后";
+        return `${raw}（${dir}${distStr}）`;
+    }
+    if (type === 'y') {
+        const dir = val > 0 ? "偏左" : val < 0 ? "偏右" : "";
+        if (!dir) return `${raw}（正中）`;
+        return `${raw}（${dir}${distStr}）`;
+    }
+    if (type === 'z') {
+        return `${raw}（高度${distStr}）`;
+    }
+    return raw;
+}
+
 export const VisionTool: React.FC<VisionToolProps> = ({ args, result, events }) => {
     const rawMode = args?.mode;
     const modeFromArgs: 'vqa' | 'grounding' | 'unknown' =
@@ -350,23 +377,37 @@ export const VisionTool: React.FC<VisionToolProps> = ({ args, result, events }) 
                             {objects.map((obj: any, idx: number) => (
                                 <div
                                     key={idx}
-                                    className="flex items-start justify-between gap-3 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100"
+                                    className="flex flex-col gap-2 px-3 py-3 rounded-xl bg-gray-50 border border-gray-100 transition-colors hover:bg-gray-100/50"
                                 >
-                                    <div>
-                                        <div className="text-xs font-semibold text-gray-800">
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-xs font-semibold text-gray-800 flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                                             {obj.label ?? 'Object'}
                                         </div>
-                                        <div className="mt-0.5 flex flex-wrap gap-1 text-[10px] text-gray-500">
-                                            {typeof obj.distance === 'number' && (
-                                                <span className="px-1.5 py-0.5 rounded-full bg-white border border-gray-200">{obj.distance.toFixed(2)} m</span>
-                                            )}
-                                            {typeof obj.angle_deg === 'number' && (
-                                                <span className="px-1.5 py-0.5 rounded-full bg-white border border-gray-200">{obj.angle_deg.toFixed(1)}°</span>
-                                            )}
-                                            {typeof obj.confidence === 'number' && (
-                                                <span className="px-1.5 py-0.5 rounded-full bg-white border border-gray-200">{(obj.confidence * 100).toFixed(0)}% conf</span>
-                                            )}
-                                        </div>
+                                        {typeof obj.confidence === 'number' && (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white border border-gray-200 text-gray-500 font-mono">
+                                                {(obj.confidence * 100).toFixed(0)}%
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="text-[11px] text-gray-600 bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm">
+                                        <table className="w-full">
+                                            <tbody>
+                                                <tr className="border-b border-gray-50 last:border-0">
+                                                    <td className="px-2 py-1.5 text-gray-400 font-mono w-8 bg-gray-50/50">x</td>
+                                                    <td className="px-2 py-1.5 text-right font-medium">{formatCoordinate(obj.x ?? obj.distance, 'x')}</td>
+                                                </tr>
+                                                <tr className="border-b border-gray-50 last:border-0">
+                                                    <td className="px-2 py-1.5 text-gray-400 font-mono w-8 bg-gray-50/50">y</td>
+                                                    <td className="px-2 py-1.5 text-right font-medium">{formatCoordinate(obj.y, 'y')}</td>
+                                                </tr>
+                                                <tr className="border-b border-gray-50 last:border-0">
+                                                    <td className="px-2 py-1.5 text-gray-400 font-mono w-8 bg-gray-50/50">z</td>
+                                                    <td className="px-2 py-1.5 text-right font-medium">{formatCoordinate(obj.z, 'z')}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             ))}

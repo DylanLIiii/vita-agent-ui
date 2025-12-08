@@ -37,6 +37,7 @@ export interface VisionVQAStartEvent extends BaseUIEvent {
 export interface VisionImageCapturedEvent extends BaseUIEvent {
     event_type: 'vision_image_captured';
     image_base64: string;
+    image_url?: string | null;
     image_format: 'jpeg' | 'png';
     width?: number | null;
     height?: number | null;
@@ -60,6 +61,7 @@ export interface VisionGroundingStartEvent extends BaseUIEvent {
 export interface VisionStereoCapturedEvent extends BaseUIEvent {
     event_type: 'vision_stereo_captured';
     image_base64: string;
+    image_url?: string | null;
     image_format: 'png';
     width?: number | null;
     height?: number | null;

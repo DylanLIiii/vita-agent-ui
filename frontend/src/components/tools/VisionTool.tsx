@@ -83,7 +83,13 @@ export const VisionTool: React.FC<VisionToolProps> = ({ args, result, events }) 
 
     // Derive data from events or args/result
     const capturedImageEvent = events?.find(e => e.event_type === 'vision_image_captured' || e.event_type === 'vision_stereo_captured') as VisionImageCapturedEvent | VisionStereoCapturedEvent | undefined;
-    const capturedImage = capturedImageEvent ? `data:image/${capturedImageEvent.image_format};base64,${capturedImageEvent.image_base64}` : undefined;
+    const capturedImage = capturedImageEvent
+        ? (capturedImageEvent.image_url
+            ? capturedImageEvent.image_url
+            : (capturedImageEvent.image_base64
+                ? `data:image/${capturedImageEvent.image_format};base64,${capturedImageEvent.image_base64}`
+                : undefined))
+        : undefined;
 
     // Prefer event image if available (real-time), else args image
     const image: string | undefined = capturedImage || args?.image;

@@ -43,7 +43,7 @@ wss.on('connection', (ws) => {
     // Send client list ONLY to the new client (don't spam everyone else)
     sendClientListTo(ws);
 
-    ws.on('message', (message) => {
+    ws.on('message', async (message) => {
         try {
             const data = JSON.parse(message);
 
@@ -54,6 +54,28 @@ wss.on('connection', (ws) => {
                 }
                 return value;
             }));
+
+            // Handle image fetching for events with image_url
+            // "Now for backend, when handle base64 image event. We can optionally handle image_url key in the payload, defaulyt we use image_url. Then we load the image from the image_url."
+            if (data.type === 'ui_event' && data.event && data.event.image_url) {
+                try {
+                    // Only fetch if image_base64 is missing or we prefer url?
+                    // User says "defaulyt we use image_url. Then we load the image from the image_url."
+                    // This implies if URL is present, we load it.
+                    console.log(`Fetching image from URL: ${data.event.image_url}`);
+                    const response = await fetch(data.event.image_url);
+                    if (response.ok) {
+                        const arrayBuffer = await response.arrayBuffer();
+                        const buffer = Buffer.from(arrayBuffer);
+                        data.event.image_base64 = buffer.toString('base64');
+                        // We preserve the image_url in the event as well.
+                    } else {
+                        console.error(`Failed to fetch image from ${data.event.image_url}: ${response.statusText}`);
+                    }
+                } catch (fetchErr) {
+                    console.error(`Error fetching image from ${data.event.image_url}:`, fetchErr);
+                }
+            }
 
             // Handle Registration
             if (data.type === 'register') {

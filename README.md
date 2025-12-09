@@ -44,7 +44,7 @@ uv run python client_sdk/client_example.py
 
 ## 📡 Streaming Protocol
 
-To stream data to the viewer, connect to `ws://localhost:3000` and send JSON objects. The viewer supports three types of blocks.
+To stream data to the viewer, connect to `ws://localhost:61111` and send JSON objects. The viewer supports three types of blocks.
 
 ### 1. Text Tokens
 

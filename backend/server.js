@@ -97,7 +97,7 @@ wss.on("connection", (ws) => {
             );
           }
         } catch (fetchErr) {
-          console.error(
+          errorWithTimestamp(
             `Error fetching image from ${data.event.image_url}:`,
             fetchErr
           );

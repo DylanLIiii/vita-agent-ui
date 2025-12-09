@@ -92,7 +92,7 @@ wss.on("connection", (ws) => {
             data.event.image_base64 = buffer.toString("base64");
             // We preserve the image_url in the event as well.
           } else {
-            console.error(
+            errorWithTimestamp(
               `Failed to fetch image from ${data.event.image_url}: ${response.statusText}`
             );
           }

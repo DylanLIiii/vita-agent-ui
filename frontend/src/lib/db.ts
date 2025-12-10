@@ -57,7 +57,7 @@ export const db = {
     // Update or add clients
     const timestamp = Date.now();
     for (const client of clients) {
-      await store.put({ ...client, lastUpdated: timestamp });
+      store.put({ ...client, lastUpdated: timestamp });
     }
 
     await tx.done;

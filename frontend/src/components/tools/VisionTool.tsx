@@ -116,17 +116,15 @@ export const VisionTool: React.FC<VisionToolProps> = ({
       e.event_type === "vision_stereo_captured"
   ) as VisionImageCapturedEvent | VisionStereoCapturedEvent | undefined;
 
-  // Logic: Prefer base64 if available (it means backend fetched it successfully or source provided it)
-  // If base64 is empty, try image_url.
+  // Logic: Prefer image_url if available, fall back to base64 when needed
   let capturedImage: string | undefined = undefined;
   if (capturedImageEvent) {
-    if (
-      capturedImageEvent.image_base64 &&
-      capturedImageEvent.image_base64.length > 0
-    ) {
-      capturedImage = `data:image/${capturedImageEvent.image_format};base64,${capturedImageEvent.image_base64}`;
-    } else if (capturedImageEvent.image_url) {
-      capturedImage = capturedImageEvent.image_url;
+    const imageUrl = capturedImageEvent.image_url?.trim();
+    const imageBase64 = capturedImageEvent.image_base64?.trim();
+    if (imageUrl) {
+      capturedImage = imageUrl;
+    } else if (imageBase64) {
+      capturedImage = `data:image/${capturedImageEvent.image_format};base64,${imageBase64}`;
     }
   }
 

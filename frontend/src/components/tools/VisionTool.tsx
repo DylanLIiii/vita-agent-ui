@@ -119,12 +119,9 @@ export const VisionTool: React.FC<VisionToolProps> = ({
   // Logic: Prefer image_url if available, fall back to base64 when needed
   let capturedImage: string | undefined = undefined;
   if (capturedImageEvent) {
-    if (capturedImageEvent.image_url) {
+    if (capturedImageEvent.image_url?.trim()) {
       capturedImage = capturedImageEvent.image_url;
-    } else if (
-      capturedImageEvent.image_base64 &&
-      capturedImageEvent.image_base64.length > 0
-    ) {
+    } else if (capturedImageEvent.image_base64?.trim()) {
       capturedImage = `data:image/${capturedImageEvent.image_format};base64,${capturedImageEvent.image_base64}`;
     }
   }
